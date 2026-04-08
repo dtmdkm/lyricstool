@@ -445,18 +445,15 @@ class Worker(QThread):
                 tmp_wav = f.name
             convert_to_wav(path, tmp_wav)
 
-            # status will be updated by status_callback once model is ready
             lang = None if self.language == "auto" else self.language
-
-            import time
-            _t0 = [time.time()]
+            t_start = __import__("time").time()
 
             def on_prog(cur, total):
-                elapsed = int(time.time() - _t0[0])
+                elapsed = int(__import__("time").time() - t_start)
                 pct = min(90, int(22 + (cur / total) * 68))
                 self.sig_progress.emit(
                     path, pct,
-                    f"Nhận dạng... {cur:.0f}s / {total:.0f}s  ({elapsed}s đã qua)"
+                    f"Nhận dạng... {cur:.0f}s / {total:.0f}s  ({elapsed}s đã qua)",
                 )
 
             def on_status(pct, text):
@@ -487,8 +484,11 @@ class Worker(QThread):
             self._log(f"  ✓ Đã lưu: {Path(out_path).name}")
 
         except Exception as exc:
+            import traceback
+            tb = traceback.format_exc()
             self.sig_error.emit(path, str(exc))
             self._log(f"  ✗ Lỗi: {exc}")
+            self._log(tb)
         finally:
             if tmp_wav:
                 try:
@@ -609,6 +609,12 @@ class MainWindow(QMainWindow):
         self.lang_cb = QComboBox()
         for k, v in LANGUAGES.items():
             self.lang_cb.addItem(k, v)
+        self.lang_cb.setStyleSheet(
+            "QComboBox { color: white; background-color: #1e293b; border: 1px solid #475569;"
+            " border-radius: 6px; padding: 5px 10px; min-width: 160px; }"
+            " QComboBox QAbstractItemView { color: white; background-color: #1e293b;"
+            " selection-background-color: #4c1d95; }"
+        )
         lang_col.addWidget(ll)
         lang_col.addWidget(self.lang_cb)
 
@@ -620,6 +626,12 @@ class MainWindow(QMainWindow):
         for k, v in MODELS.items():
             self.model_cb.addItem(k, v)
         self.model_cb.setCurrentIndex(2)  # small by default
+        self.model_cb.setStyleSheet(
+            "QComboBox { color: white; background-color: #1e293b; border: 1px solid #475569;"
+            " border-radius: 6px; padding: 5px 10px; min-width: 160px; }"
+            " QComboBox QAbstractItemView { color: white; background-color: #1e293b;"
+            " selection-background-color: #4c1d95; }"
+        )
         model_col.addWidget(ml)
         model_col.addWidget(self.model_cb)
 
