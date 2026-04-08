@@ -1,0 +1,108 @@
+name: Build Executables
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:          # cho phép chạy thủ công từ GitHub UI
+
+jobs:
+  # ─────────────────────────── Windows .exe ───────────────────────────────
+  build-windows:
+    name: Windows (.exe)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        run: pyinstaller build.spec --noconfirm
+
+      - name: Zip artifact
+        run: |
+          powershell -Command "Compress-Archive -Force -Path dist\LyricsSRTConverter -DestinationPath LyricsSRTConverter-Windows.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LyricsSRTConverter-Windows
+          path: LyricsSRTConverter-Windows.zip
+          retention-days: 30
+
+  # ─────────────────────────── macOS .app ─────────────────────────────────
+  build-macos:
+    name: macOS (.app)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        run: pyinstaller build.spec --noconfirm
+
+      - name: Zip artifact
+        run: zip -r LyricsSRTConverter-macOS.zip dist/LyricsSRTConverter
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LyricsSRTConverter-macOS
+          path: LyricsSRTConverter-macOS.zip
+          retention-days: 30
+
+  # ──────────── Tạo GitHub Release kèm download khi push tag ─────────────
+  release:
+    name: Create GitHub Release
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: LyricsSRTConverter-Windows
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: LyricsSRTConverter-macOS
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            LyricsSRTConverter-Windows.zip
+            LyricsSRTConverter-macOS.zip
+          body: |
+            ## 🎵 Lyrics to SRT Converter
+
+            Chuyển đổi file âm thanh thành phụ đề SRT để dùng trong CapCut, Premiere, DaVinci...
+
+            ### Cách dùng
+            1. Tải file ZIP phù hợp với hệ điều hành của bạn
+            2. Giải nén → chạy **LyricsSRTConverter.exe** (Windows) hoặc **LyricsSRTConverter** (macOS)
+            3. Kéo thả file nhạc vào ứng dụng → chọn thư mục lưu → nhấn **Bắt đầu**
+
+            > ⚠️ Lần đầu chạy sẽ tự tải model Whisper (~244MB cho model **small**). Cần kết nối internet.
