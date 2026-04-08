@@ -24,7 +24,7 @@ if errorlevel 1 ( echo [ERROR] Build that bai & pause & exit /b 1 )
 
 echo.
 echo [3/3] Nen thanh file ZIP...
-powershell -Command "Compress-Archive -Force -Path dist\LyricsSRTConverter -DestinationPath LyricsSRTConverter-Windows.zip"
+python -c "import zipfile, os; z=zipfile.ZipFile('LyricsSRTConverter-Windows.zip','w',zipfile.ZIP_DEFLATED); [z.write(os.path.join(r,f), os.path.join(r,f)) for r,_,fs in os.walk('dist\\LyricsSRTConverter') for f in fs]; z.close(); print('ZIP OK')"
 
 echo.
 echo ============================================
