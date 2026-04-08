@@ -151,8 +151,12 @@ QComboBox {
     padding: 6px 12px;
     min-width: 180px;
 }
-QComboBox::drop-down { border: none; width: 22px; }
-QComboBox::down-arrow { color: #64748b; }
+QComboBox QLineEdit {
+    color: #e2e8f0;
+    background-color: transparent;
+    border: none;
+    padding: 0px;
+}
 QComboBox QAbstractItemView {
     background-color: #1e293b;
     color: #e2e8f0;
