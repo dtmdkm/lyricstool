@@ -800,6 +800,7 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Lyrics SRT Converter")
+    app.setStyle("Fusion")   # consistent look in packaged exe, fixes empty ComboBox
     win = MainWindow()
     win.show()
     sys.exit(app.exec())
