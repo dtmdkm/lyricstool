@@ -445,13 +445,22 @@ class Worker(QThread):
                 tmp_wav = f.name
             convert_to_wav(path, tmp_wav)
 
-            self.sig_progress.emit(path, 22, "Đang nhận dạng giọng nói (Whisper)...")
-
+            # status will be updated by status_callback once model is ready
             lang = None if self.language == "auto" else self.language
 
+            import time
+            _t0 = [time.time()]
+
             def on_prog(cur, total):
+                elapsed = int(time.time() - _t0[0])
                 pct = min(90, int(22 + (cur / total) * 68))
-                self.sig_progress.emit(path, pct, f"Nhận dạng... {cur:.0f}s / {total:.0f}s")
+                self.sig_progress.emit(
+                    path, pct,
+                    f"Nhận dạng... {cur:.0f}s / {total:.0f}s  ({elapsed}s đã qua)"
+                )
+
+            def on_status(pct, text):
+                self.sig_progress.emit(path, pct, text)
 
             segments, detected = transcribe_audio(
                 tmp_wav,
@@ -459,6 +468,7 @@ class Worker(QThread):
                 model_size=self.model,
                 progress_callback=on_prog,
                 log_callback=self._log,
+                status_callback=on_status,
             )
 
             self._log(f"  → Ngôn ngữ: {detected}  |  {len(segments)} đoạn")
