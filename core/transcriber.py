@@ -10,6 +10,7 @@ def transcribe_audio(
     language: Optional[str] = None,
     model_size: str = "small",
     progress_callback: Optional[Callable[[float, float], None]] = None,
+    log_callback: Optional[Callable[[str], None]] = None,
 ) -> tuple[list[dict], str]:
     """
     Transcribe audio file using faster-whisper.
@@ -22,11 +23,15 @@ def transcribe_audio(
 
     cache_key = (model_size, "cpu")
     if cache_key not in _model_cache:
+        if log_callback:
+            log_callback(f"  → Đang tải model '{model_size}' lần đầu (~vài phút, chỉ 1 lần)...")
         _model_cache[cache_key] = WhisperModel(
             model_size,
             device="cpu",
             compute_type="int8",
         )
+        if log_callback:
+            log_callback(f"  → Model '{model_size}' đã sẵn sàng")
 
     model = _model_cache[cache_key]
 

@@ -454,6 +454,7 @@ class Worker(QThread):
                 language=lang,
                 model_size=self.model,
                 progress_callback=on_prog,
+                log_callback=self._log,
             )
 
             self._log(f"  → Ngôn ngữ: {detected}  |  {len(segments)} đoạn")
@@ -797,10 +798,31 @@ class MainWindow(QMainWindow):
 
 # ── entry point ──────────────────────────────────────────────────────────────
 
+def _apply_dark_palette(app: QApplication) -> None:
+    """Set dark QPalette so Fusion style renders text correctly in packaged exe."""
+    from PyQt6.QtGui import QPalette, QColor
+    p = QPalette()
+    p.setColor(QPalette.ColorRole.Window,          QColor(13,  13,  31))
+    p.setColor(QPalette.ColorRole.WindowText,      QColor(226, 232, 240))
+    p.setColor(QPalette.ColorRole.Base,            QColor(30,  41,  59))
+    p.setColor(QPalette.ColorRole.AlternateBase,   QColor(19,  19,  43))
+    p.setColor(QPalette.ColorRole.Text,            QColor(226, 232, 240))
+    p.setColor(QPalette.ColorRole.Button,          QColor(30,  41,  59))
+    p.setColor(QPalette.ColorRole.ButtonText,      QColor(226, 232, 240))
+    p.setColor(QPalette.ColorRole.BrightText,      QColor(255, 255, 255))
+    p.setColor(QPalette.ColorRole.Highlight,       QColor(76,  29,  149))
+    p.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
+    p.setColor(QPalette.ColorRole.ToolTipBase,     QColor(30,  41,  59))
+    p.setColor(QPalette.ColorRole.ToolTipText,     QColor(226, 232, 240))
+    p.setColor(QPalette.ColorRole.PlaceholderText, QColor(100, 116, 139))
+    app.setPalette(p)
+
+
 def main():
     app = QApplication(sys.argv)
     app.setApplicationName("Lyrics SRT Converter")
-    app.setStyle("Fusion")   # consistent look in packaged exe, fixes empty ComboBox
+    app.setStyle("Fusion")
+    _apply_dark_palette(app)   # fixes empty ComboBox text in packaged exe
     win = MainWindow()
     win.show()
     sys.exit(app.exec())
